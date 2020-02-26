@@ -1,0 +1,102 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: Enable AWS Config,
+
+Parameters:
+  AllSupported:
+    Type: String
+    Default: 'true'
+    Description: Indicates whether to record all supported resource types.
+    AllowedValues:
+      - 'true'
+      - 'false'
+
+  IncludeGlobalResourceTypes:
+    Type: String
+    Default: 'true'
+    Description: Indicates whether AWS Config records all supported global resource types.
+    AllowedValues:
+      - 'true'
+      - 'false'
+
+  ResourceTypes:
+    Type: CommaDelimitedList
+    Description: A list of valid AWS resource types to include in this recording group. Eg. AWS::CloudTrail::Trail
+    Default: AWS::CloudTrail::Trail
+
+  DeliveryChannelName:
+    Type: String
+    Default: 'DeliveryChannel'
+    Description: The name of the delivery channel.
+
+  Frequency:
+    Type: String
+    Default: 24hours
+    Description: The frequency with which AWS Config delivers configuration snapshots.
+    AllowedValues:
+      - 1hour
+      - 3hours
+      - 6hours
+      - 12hours
+      - 24hours
+
+
+  BucketName:
+    Type: String
+    Default: ''
+    Description: Bucket name from the Logging Account
+
+
+
+  LogsRetentionInDays:
+    Description: 'Specifies the number of days you want to retain notification forwarding log events in the Lambda log group.'
+    Type: Number
+    Default: 14
+    AllowedValues: [1, 3, 5, 7, 14, 30, 60, 90, 120, 150, 180, 365, 400, 545, 731, 1827, 3653]
+
+
+Conditions:
+  IsAllSupported: !Equals
+    - !Ref AllSupported
+    - 'true'
+  IsGeneratedDeliveryChannelName: !Equals
+    - !Ref DeliveryChannelName
+    - ''
+
+
+Mappings:
+  Settings:
+    FrequencyMap:
+      1hour   : One_Hour
+      3hours  : Three_Hours
+      6hours  : Six_Hours
+      12hours : Twelve_Hours
+      24hours : TwentyFour_Hours
+
+Resources:
+
+  ConfigRecorder:
+    Type: AWS::Config::ConfigurationRecorder
+    Properties:
+      RoleARN: !Sub arn:aws-us-gov:iam::${AWS::AccountId}:role/AWS-Landing-Zone-ConfigRecorderRole
+      RecordingGroup:
+        AllSupported: !Ref AllSupported
+        IncludeGlobalResourceTypes: !Ref IncludeGlobalResourceTypes
+        ResourceTypes: !If
+          - IsAllSupported
+          - !Ref AWS::NoValue
+          - !Ref ResourceTypes
+
+  ConfigDeliveryChannel:
+    Type: AWS::Config::DeliveryChannel
+    Properties:
+      Name: !If
+        - IsGeneratedDeliveryChannelName
+        - !Ref AWS::NoValue
+        - !Ref DeliveryChannelName
+      ConfigSnapshotDeliveryProperties:
+        DeliveryFrequency: !FindInMap
+          - Settings
+          - FrequencyMap
+          - !Ref Frequency
+      S3BucketName: !Ref BucketName
+    
