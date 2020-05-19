@@ -1,6 +1,6 @@
 AWSTemplateFormatVersion: 2010-09-09
 Description: Enable AWS CloudTrail. This template creates a CloudTrail trail, an Amazon S3 bucket where logs are published, and an Amazon SNS topic where notifications are sent.
-
+#need to add this to the s3 bucket https://docs.aws.amazon.com/awscloudtrail/latest/userguide/create-s3-bucket-policy-for-cloudtrail.html#s3-bucket-policy
 Parameters:
   EnableLogFileValidation:
     Type: String
