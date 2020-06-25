@@ -17,7 +17,7 @@
                 "Service": "cloudtrail.amazonaws.com"
             },
             "Action": "s3:PutObject",
-            "Resource": "arn:aws-us-gov:s3:::gss-trailbucket/AWSLogs/472452200279/*",
+            "Resource": "arn:aws-us-gov:s3:::gss-trailbucket/AWSLogs/"accountnumber"/*",
             "Condition": {
                 "StringEquals": {
                     "s3:x-amz-acl": "bucket-owner-full-control"
